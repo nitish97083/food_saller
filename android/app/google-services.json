@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "577108729541",
+    "project_id": "food-fanda-clone-app",
+    "storage_bucket": "food-fanda-clone-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:577108729541:android:349ffec8db5572ebffdaac",
+        "android_client_info": {
+          "package_name": "com.nitish.sellerapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBSXfduTR-zXp4CpNdAdbMaHYH9NUV7OZ0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
