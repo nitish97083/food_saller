@@ -8,9 +8,9 @@ class CustTextField extends StatelessWidget {
       this.isEnable,
       this.isObscure,
       this.textInputType,
-      this.textEditingController});
+      required this.textEditingController});
 
-  final TextEditingController? textEditingController;
+  final TextEditingController textEditingController;
   final String? hintText;
   final IconData? icon;
   bool? isObscure = true;
@@ -31,6 +31,7 @@ class CustTextField extends StatelessWidget {
       child: TextFormField(
         controller: textEditingController,
         obscureText: isObscure!,
+        keyboardType: textInputType,
         enabled: isEnable,
         cursorColor: Theme.of(context).primaryColor,
         decoration: InputDecoration(

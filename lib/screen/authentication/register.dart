@@ -1,7 +1,13 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart' as fStorage;
 import 'package:flutter/material.dart';
+import 'package:food_saller_app/screen/home_page.dart';
 import 'package:food_saller_app/widgets/custom_text_field.dart';
+import 'package:food_saller_app/widgets/error_dialog.dart';
+import 'package:food_saller_app/widgets/loading_dialog.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
@@ -26,6 +32,7 @@ class _RegisterState extends State<Register> {
   Position? _position;
   List<Placemark>? _placeMark;
   var isLocationLoading = false;
+  String _getSellerImageUrl = "";
 
   _getCurrentLocation() async {
     // if (await Permission.location.isPermanentlyDenied) {
@@ -59,6 +66,93 @@ class _RegisterState extends State<Register> {
       print("open setting for location access");
       openAppSettings();
       // }
+    }
+  }
+
+  Future _saveData(User currentUser) async {
+    FirebaseFirestore.instance.collection('sellers').doc(currentUser.uid).set({
+      'sellerUid': currentUser.uid,
+      'sellerEmail': currentUser.email,
+      'sellerPhone': _phone.text.trim(),
+      'sellerName': _name.text.trim(),
+      'sellerImage': _getSellerImageUrl,
+      'sellerAdd': _location.text.trim(),
+      'status': 'Approved',
+      'earnings': 0.0,
+      'lat': _position!.latitude,
+      'long': _position!.longitude
+    });
+
+    //Save data locally
+  }
+
+  void _authenAndSingUp() async {
+    User? currentUser;
+
+    final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+    await firebaseAuth
+        .createUserWithEmailAndPassword(
+            email: _email.text.trim(), password: _confirmPassword.text.trim())
+        .then((auth) {
+      currentUser = auth.user;
+    });
+    if (currentUser != null) {
+      _saveData(currentUser!).then((value) {
+        Navigator.pop(context);
+        Route newRoute = MaterialPageRoute(
+          builder: (c) => const HomePage(),
+        );
+        Navigator.pushReplacement(context, newRoute);
+      });
+    }
+  }
+
+  _formValidation() async {
+    if (xImageFile == null) {
+      showDialog(
+        context: context,
+        builder: (c) => const ErrorDialog(message: "Please Select Image."),
+      );
+    } else {
+      if (_password.text.isNotEmpty &&
+          _confirmPassword.text.isNotEmpty &&
+          _phone.text.isNotEmpty &&
+          _email.text.isNotEmpty &&
+          _name.text.isNotEmpty &&
+          _location.text.isNotEmpty) {
+        if (_password.text == _confirmPassword.text) {
+          showDialog(
+            context: context,
+            builder: (ctx) =>
+                const LoadingDialog(message: "Registering Account"),
+          );
+          String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+          fStorage.Reference reference = fStorage.FirebaseStorage.instance
+              .ref()
+              .child("sellers")
+              .child(fileName);
+          fStorage.UploadTask uploadTask =
+              reference.putFile(File(xImageFile!.path));
+          fStorage.TaskSnapshot taskSnapshot =
+              await uploadTask.whenComplete(() {});
+          await taskSnapshot.ref.getDownloadURL().then((url) {
+            _getSellerImageUrl = url;
+            // save data rto firebase
+            _authenAndSingUp();
+          });
+        } else {
+          showDialog(
+            context: context,
+            builder: (c) => const ErrorDialog(message: "Password do not match"),
+          );
+        }
+      } else {
+        showDialog(
+          context: context,
+          builder: (c) => const ErrorDialog(
+              message: "Please Enter Require information for Registration"),
+        );
+      }
     }
   }
 
@@ -186,7 +280,7 @@ class _RegisterState extends State<Register> {
             height: 10,
           ),
           ElevatedButton(
-            onPressed: () {},
+            onPressed: _formValidation,
             style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.purple,
                 padding:
