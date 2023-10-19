@@ -12,6 +12,9 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../global/global.dart';
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -84,18 +87,31 @@ class _RegisterState extends State<Register> {
     });
 
     //Save data locally
+    pref = await SharedPreferences.getInstance();
+    await pref!.setString("uid", currentUser.uid);
+    await pref!.setString("name", _name.text);
+    await pref!.setString("email", currentUser.email.toString());
+    await pref!.setString("sellerImage", _getSellerImageUrl);
   }
 
   void _authenAndSingUp() async {
     User? currentUser;
 
-    final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
-    await firebaseAuth
-        .createUserWithEmailAndPassword(
-            email: _email.text.trim(), password: _confirmPassword.text.trim())
-        .then((auth) {
-      currentUser = auth.user;
-    });
+    try {
+      await firebaseAuth
+          .createUserWithEmailAndPassword(
+              email: _email.text.trim(), password: _confirmPassword.text.trim())
+          .then((auth) {
+        currentUser = auth.user;
+      });
+    } on FirebaseAuthException catch (err) {
+      Navigator.pop(context);
+      print(err.message.toString());
+      showDialog(
+        context: context,
+        builder: (c) => ErrorDialog(message: err.message.toString()),
+      );
+    }
     if (currentUser != null) {
       _saveData(currentUser!).then((value) {
         Navigator.pop(context);

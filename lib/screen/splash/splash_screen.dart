@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:food_saller_app/global/global.dart';
 import 'package:food_saller_app/screen/authentication/auth_screen.dart';
+import 'package:food_saller_app/screen/home_page.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -13,11 +15,21 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
   _startTimer() {
     Timer(const Duration(seconds: 0), () async {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (ctx) => const AuthScreen(),
-        ),
-      );
+      //if seller is already logding already
+      if (firebaseAuth.currentUser != null) {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (ctx) => const HomePage(),
+          ),
+        );
+      } else {
+        //if seller is not logding already
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (ctx) => const AuthScreen(),
+          ),
+        );
+      }
     });
   }
 
